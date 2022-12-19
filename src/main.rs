@@ -219,7 +219,6 @@ fn change_tmux_window(selected_worktree: &str, worktree_path: &str) {
 
 fn fuzzy_select_worktree(repo: &Repository) -> Worktree {
     let options = SkimOptionsBuilder::default()
-        .height(Some("50%"))
         .multi(false)
         .build()
         .unwrap();
@@ -256,7 +255,6 @@ fn fuzzy_select_worktree(repo: &Repository) -> Worktree {
 
 fn fuzzy_select_and_pull_remote_branch(repo: &Repository) -> Branch {
     let options = SkimOptionsBuilder::default()
-        .height(Some("50%"))
         .multi(false)
         .build()
         .unwrap();
