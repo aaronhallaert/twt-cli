@@ -36,6 +36,10 @@ This command shows all worktrees. If one is picked, the selected worktree is
 removed with the corresponding branch and if the Tmux window exists for this
 worktree, it will be deleted.
 
+### Media
+
+https://user-images.githubusercontent.com/37899722/208522716-08734ec2-cc56-4cbe-aef7-0857e6db7e20.mov
+
 ## Note
 
 - Upstream is hardcoded `origin`
