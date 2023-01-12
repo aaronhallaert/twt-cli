@@ -10,3 +10,4 @@ clap = { version = "4.0.29", features = ["derive"] }
 git2 = "0.15.0"
 regex = "1.7.0"
 skim = "0.10.2"
+anyhow = "1.0.68"
