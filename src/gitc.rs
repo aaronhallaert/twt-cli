@@ -6,13 +6,23 @@ pub fn remove_worktree(worktree_name: &str) {
         .arg("worktree")
         .arg("remove")
         .arg(worktree_name);
-    remove_worktree.output().unwrap();
+
+    if let Ok(status_value) = remove_worktree.status() {
+        if !status_value.success() {
+            std::process::exit(1);
+        }
+    }
 }
 
 pub fn remove_branch(branch_name: &str) {
     let mut remove_branch = Command::new("git");
     remove_branch.arg("branch").arg("--delete").arg(branch_name).arg("-f");
-    remove_branch.output().unwrap();
+    
+    if let Ok(status_value) = remove_branch.status() {
+        if !status_value.success() {
+            std::process::exit(1);
+        }
+    }
 }
 
 pub fn prune_remote(remote: &str) {
@@ -20,7 +30,12 @@ pub fn prune_remote(remote: &str) {
 
     let mut prune_remote = Command::new("git");
     prune_remote.arg("fetch").arg(remote).arg("prune");
-    prune_remote.output().unwrap();
+
+    if let Ok(status_value) = prune_remote.status() {
+        if !status_value.success() {
+            std::process::exit(1);
+        }
+    }
 }
 
 pub fn cherrypick(from_hash: &str, to_hash: Option<String>) {
@@ -34,23 +49,40 @@ pub fn cherrypick(from_hash: &str, to_hash: Option<String>) {
             cherrypick_cmd.arg("cherry-pick").arg(from_hash);
         }
     }
-    cherrypick_cmd.output().unwrap();
+    if let Ok(status_value) = cherrypick_cmd.status() {
+        if !status_value.success() {
+            std::process::exit(1);
+        }
+    }
 
     let mut rebase_cmd = Command::new("git");
     rebase_cmd.arg("rebase").arg("--interactive").arg("--autostash").arg("--keep-empty").arg("HEAD");
-    rebase_cmd.output().unwrap();
+    
+    if let Ok(status_value) = rebase_cmd.status() {
+        if !status_value.success() {
+            std::process::exit(1);
+        }
+    }
 }
 
 pub fn checkout(branch_name: &str) {
     let mut checkout_cmd = Command::new("git");
     checkout_cmd.arg("checkout").arg(branch_name);
-    checkout_cmd.output().unwrap();
+    if let Ok(status_value) = checkout_cmd.status() {
+        if !status_value.success() {
+            std::process::exit(1);
+        }
+    }
 }
 
 pub fn create_local(branch_name: &str) {
     let mut create_cmd = Command::new("git");
     create_cmd.arg("branch").arg(branch_name);
-    create_cmd.output().unwrap();
+    if let Ok(status_value) = create_cmd.status() {
+        if !status_value.success() {
+            std::process::exit(1);
+        }
+    }
 }
 
 
@@ -62,7 +94,11 @@ pub fn create_worktree(branch_name: &str, path: &str) {
         .arg(path)
         .arg(branch_name);
 
-    create_worktree.output().unwrap();
+    if let Ok(status_value) = create_worktree.status() {
+        if !status_value.success() {
+            std::process::exit(1);
+        }
+    }
 }
 
 pub fn fetch_branch(local_branch_name: &str) {
@@ -71,7 +107,12 @@ pub fn fetch_branch(local_branch_name: &str) {
         .arg("fetch")
         .arg("origin")
         .arg(format!("{}:{}", local_branch_name, local_branch_name));
-    fetch_branch.output().unwrap();
+    
+    if let Ok(status_value) = fetch_branch.status() {
+        if !status_value.success() {
+            std::process::exit(1);
+        }
+    }
 }
 
 pub fn set_tracking_branch(local_branch_name: &str, remote_branch_name: &str) {
@@ -81,7 +122,12 @@ pub fn set_tracking_branch(local_branch_name: &str, remote_branch_name: &str) {
         .arg("-u")
         .arg(remote_branch_name)
         .arg(local_branch_name);
-    set_tracking_branch.output().unwrap();
+    
+    if let Ok(status_value) = set_tracking_branch.status() {
+        if !status_value.success() {
+            std::process::exit(1);
+        }
+    }
 }
 
 pub fn create_local_from_remote(remote_branch_name: &str) -> String {
