@@ -16,7 +16,7 @@ impl fmt::Display for SelectionError {
     }
 }
 
-pub fn select_remote_branch(repo: &Repository) -> Result<String> {
+pub fn select_remote_branch(repo: &Repository, filter: Option<String>) -> Result<String> {
     let options = SkimOptionsBuilder::default()
         .height(Some("100%"))
         .reverse(true)
@@ -29,6 +29,14 @@ pub fn select_remote_branch(repo: &Repository) -> Result<String> {
         .unwrap()
         .map(|s| s.unwrap())
         .map(|(branch, _)| branch.name().unwrap().unwrap().to_owned())
+        .filter(|branch| {
+            if let Some(filter) = &filter {
+                return branch.contains(filter);
+            }
+            else {
+                return true;
+            }
+        })
         .collect::<Vec<String>>()
         .join("\n");
 

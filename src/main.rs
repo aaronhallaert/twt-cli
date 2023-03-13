@@ -25,11 +25,19 @@ pub enum Action {
     Create(CreateCommand),
     Remove,
     Switch,
+    Backport(BackportCommand),
 }
 
 #[derive(Debug, Args)]
 pub struct CreateCommand {
     pub branch_to_create: Option<String>,
+}
+
+#[derive(Debug, Args)]
+pub struct BackportCommand {
+    pub branch_to_create: String,
+    pub from_hash: String,
+    pub to_hash: Option<String>,
 }
 
 fn main() {
@@ -42,6 +50,7 @@ fn main() {
         Action::Create(create_command) => handle_create_command(repo, create_command),
         Action::Switch => handle_switch_command(repo),
         Action::Remove => handle_remove_command(repo),
+        Action::Backport(backport_command) => handle_backport_command(repo, backport_command),
     };
 }
 
@@ -74,6 +83,24 @@ fn handle_remove_command(repo: Repository) {
     gitc::remove_worktree(worktree_name);
     gitc::remove_branch(branch_name.name().unwrap().unwrap());
     tmux::remove_window(worktree_name);
+}
+
+fn handle_backport_command(repo: Repository, backport_command: BackportCommand) {
+    // list release branches
+    if let Ok(remote_branch_name) =
+        fuzzy::select_remote_branch(&repo, Some("origin/release".to_string()))
+    {
+        let local_release_name = gitc::create_local_from_remote(&remote_branch_name);
+
+        gitc::checkout(&local_release_name);
+        gitc::create_local(&backport_command.branch_to_create);
+        gitc::checkout(&backport_command.branch_to_create);
+
+        // cherry pick from_hash to to_hash
+        gitc::cherrypick(&backport_command.from_hash, backport_command.to_hash);
+    } else {
+        exit(1);
+    }
 }
 
 fn handle_create_command(repo: Repository, create_command: CreateCommand) {
@@ -119,7 +146,7 @@ fn handle_create_command(repo: Repository, create_command: CreateCommand) {
         }
         None => {
             gitc::prune_remote("origin");
-            if let Ok(remote_branch_name) = fuzzy::select_remote_branch(&repo) {
+            if let Ok(remote_branch_name) = fuzzy::select_remote_branch(&repo, None) {
                 println!("Selected worktree: {}", &remote_branch_name);
 
                 let local_branch_name = gitc::create_local_from_remote(&remote_branch_name);

@@ -23,6 +23,37 @@ pub fn prune_remote(remote: &str) {
     prune_remote.output().unwrap();
 }
 
+pub fn cherrypick(from_hash: &str, to_hash: Option<String>) {
+    let mut cherrypick_cmd = Command::new("git");
+
+    match to_hash {
+        Some(hash) => {
+            cherrypick_cmd.arg("cherry-pick").arg(format!("{}..{}", from_hash, hash));
+        }
+        None => {
+            cherrypick_cmd.arg("cherry-pick").arg(from_hash);
+        }
+    }
+    cherrypick_cmd.output().unwrap();
+
+    let mut rebase_cmd = Command::new("git");
+    rebase_cmd.arg("rebase").arg("--interactive").arg("--autostash").arg("--keep-empty").arg("HEAD");
+    rebase_cmd.output().unwrap();
+}
+
+pub fn checkout(branch_name: &str) {
+    let mut checkout_cmd = Command::new("git");
+    checkout_cmd.arg("checkout").arg(branch_name);
+    checkout_cmd.output().unwrap();
+}
+
+pub fn create_local(branch_name: &str) {
+    let mut create_cmd = Command::new("git");
+    create_cmd.arg("branch").arg(branch_name);
+    create_cmd.output().unwrap();
+}
+
+
 pub fn create_worktree(branch_name: &str, path: &str) {
     let mut create_worktree = Command::new("git");
     create_worktree
