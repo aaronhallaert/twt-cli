@@ -29,7 +29,7 @@ pub fn prune_remote(remote: &str) {
     println!("Refetching origin");
 
     let mut prune_remote = Command::new("git");
-    prune_remote.arg("fetch").arg(remote).arg("prune");
+    prune_remote.arg("fetch").arg(remote).arg("--prune");
 
     if let Ok(status_value) = prune_remote.status() {
         if !status_value.success() {
@@ -50,15 +50,6 @@ pub fn cherrypick(from_hash: &str, to_hash: Option<String>) {
         }
     }
     if let Ok(status_value) = cherrypick_cmd.status() {
-        if !status_value.success() {
-            std::process::exit(1);
-        }
-    }
-
-    let mut rebase_cmd = Command::new("git");
-    rebase_cmd.arg("rebase").arg("--interactive").arg("--autostash").arg("--keep-empty").arg("HEAD");
-    
-    if let Ok(status_value) = rebase_cmd.status() {
         if !status_value.success() {
             std::process::exit(1);
         }
