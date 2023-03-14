@@ -8,7 +8,7 @@ worktrees with accompanying tmux windows written in Rust.
 ### Create
 
 ```bash
-twt-cli create <optional-branch>
+twt-cli create [BRANCH_NAME]
 ```
 
 If no branch is specified, the application fetches (with prune)
@@ -35,6 +35,17 @@ twt-cli remove
 This command shows all worktrees. If one is picked, the selected worktree is
 removed with the corresponding branch and if the Tmux window exists for this
 worktree, it will be deleted.
+
+### Backport
+
+```bash
+twt-cli backport <BRANCH_NAME> <FROM_COMMIT> [TO_COMMIT]
+```
+
+This command lists all remote release branches (hardcoded filter `release/`). 
+The picked release branch is used as the base of the new `<BRANCH_NAME>`.
+All commits from the given commits (`[TO_COMMIT]` is optional) are cherry-picked
+onto this new branch.
 
 ### Media
 
