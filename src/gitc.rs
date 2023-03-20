@@ -14,6 +14,29 @@ pub fn remove_worktree(worktree_name: &str) {
     }
 }
 
+pub fn stash(){
+    let mut stash_cmd = Command::new("git");
+    stash_cmd.arg("stash");
+    
+    if let Ok(status_value) = stash_cmd.status() {
+        if !status_value.success() {
+            std::process::exit(1);
+        }
+    }
+}
+
+pub fn apply_stash(){
+    let mut apply_stash_cmd = Command::new("git");
+    apply_stash_cmd.arg("stash").arg("apply");
+    
+    if let Ok(status_value) = apply_stash_cmd.status() {
+        if !status_value.success() {
+            std::process::exit(1);
+        }
+    }
+}
+    
+
 pub fn remove_branch(branch_name: &str) {
     let mut remove_branch = Command::new("git");
     remove_branch.arg("branch").arg("--delete").arg(branch_name).arg("-f");

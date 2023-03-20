@@ -36,16 +36,23 @@ This command shows all worktrees. If one is picked, the selected worktree is
 removed with the corresponding branch and if the Tmux window exists for this
 worktree, it will be deleted.
 
+## Git shortcuts
+
 ### Backport
 
 ```bash
 twt-cli backport <BRANCH_NAME> <FROM_COMMIT> [TO_COMMIT]
 ```
 
-This command lists all remote release branches (hardcoded filter `release/`). 
-The picked release branch is used as the base of the new `<BRANCH_NAME>`.
+This command lists all remote release branches (hardcoded filter `release/`).
+The picked release branch(es) (select multiple with <kbd>TAB</kbd>) is used as
+the base of the new `<BRANCH_NAME>`.
 All commits from the given commits (`[TO_COMMIT]` is optional) are cherry-picked
 onto this new branch.
+
+Note: The branch name should have the following format `#{initials}/#{feature_name}`.
+Release branches are expected to be of the following format `release/#{release_id}`.
+The backport branch will eventually have the name: `#{initials}/#{release_id}-#{feature_name}`.
 
 ### Media
 
@@ -57,5 +64,5 @@ https://user-images.githubusercontent.com/37899722/208522716-08734ec2-cc56-4cbe-
 - `/` character in branches will be replaced by `-` in worktree names.
 - I work with an orphan branch instead of a bare repo for worktrees.
 - Link between a worktree and a branch is sometimes hardcoded by name.
-This can cause for unexpected behaviour if you check out a different
-branch in a worktree.
+  This can cause for unexpected behaviour if you check out a different
+  branch in a worktree.

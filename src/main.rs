@@ -31,6 +31,8 @@ pub enum Action {
 #[derive(Debug, Args)]
 pub struct CreateCommand {
     pub branch_to_create: Option<String>,
+    #[clap(long, short, action)]
+    pub stash: bool,
 }
 
 #[derive(Debug, Args)]
@@ -87,17 +89,34 @@ fn handle_remove_command(repo: Repository) {
 
 fn handle_backport_command(repo: Repository, backport_command: BackportCommand) {
     // list release branches
-    if let Ok(remote_branch_name) =
+    if let Ok(selected_release_branches) =
         fuzzy::select_remote_branch(&repo, Some("origin/release".to_string()))
     {
-        let local_release_name = gitc::create_local_from_remote(&remote_branch_name);
+        selected_release_branches.iter().for_each(|branch| {
+            let local_release_name = gitc::create_local_from_remote(branch);
+            
+            gitc::checkout(&local_release_name);
+            let initials = &backport_command.branch_to_create.split('/').collect::<Vec<&str>>()[0];
+            let release_id = &local_release_name.split('/').collect::<Vec<&str>>()[1];
+            let rest_branch_name = &backport_command.branch_to_create.split('/').collect::<Vec<&str>>()[1];
 
-        gitc::checkout(&local_release_name);
-        gitc::create_local(&backport_command.branch_to_create);
-        gitc::checkout(&backport_command.branch_to_create);
+            let branch_to_create = format!("{}/{}-{}", initials, release_id, rest_branch_name);
 
-        // cherry pick from_hash to to_hash
-        gitc::cherrypick(&backport_command.from_hash, backport_command.to_hash);
+            gitc::create_local(&branch_to_create);
+            gitc::checkout(&branch_to_create);
+
+
+            match &backport_command.to_hash {
+                Some(to_hash) => {
+                    // cherry pick from_hash to to_hash
+                    gitc::cherrypick(&backport_command.from_hash, Some(to_hash.to_string()));
+                }
+                None => {
+                    // cherry pick from_hash commit
+                    gitc::cherrypick(&backport_command.from_hash, None);
+                }
+            }
+        });
     } else {
         exit(1);
     }
@@ -124,6 +143,10 @@ fn handle_create_command(repo: Repository, create_command: CreateCommand) {
                                 .unwrap()
                         }
                         Err(_) => {
+                            if create_command.stash {
+                                gitc::stash();
+                            }
+
                             // create branch
                             match repo.branch(
                                 branch_to_create,
@@ -147,9 +170,9 @@ fn handle_create_command(repo: Repository, create_command: CreateCommand) {
         None => {
             gitc::prune_remote("origin");
             if let Ok(remote_branch_name) = fuzzy::select_remote_branch(&repo, None) {
-                println!("Selected worktree: {}", &remote_branch_name);
+                println!("Selected worktree: {}", &remote_branch_name[0]);
 
-                let local_branch_name = gitc::create_local_from_remote(&remote_branch_name);
+                let local_branch_name = gitc::create_local_from_remote(&remote_branch_name[0]);
 
                 repo.find_branch(&local_branch_name, BranchType::Local)
                     .unwrap()
@@ -190,7 +213,7 @@ fn handle_create_command(repo: Repository, create_command: CreateCommand) {
             );
 
             gitc::create_worktree(branch.name().unwrap().unwrap(), &path);
-            tmux::change_window(&worktree_name, &path)
+            tmux::change_window(&worktree_name, &path);
         }
     }
 }
