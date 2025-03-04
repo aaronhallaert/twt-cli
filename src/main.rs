@@ -2,7 +2,7 @@ mod fuzzy;
 mod gitc;
 mod tmux;
 
-use std::{env, process::exit};
+use std::{env, io, path::Path, process::exit};
 
 use regex::Regex;
 
@@ -94,17 +94,22 @@ fn handle_backport_command(repo: Repository, backport_command: BackportCommand) 
     {
         selected_release_branches.iter().for_each(|branch| {
             let local_release_name = gitc::create_local_from_remote(branch);
-            
+
             gitc::checkout(&local_release_name);
-            let initials = &backport_command.branch_to_create.split('/').collect::<Vec<&str>>()[0];
+            let initials = &backport_command
+                .branch_to_create
+                .split('/')
+                .collect::<Vec<&str>>()[0];
             let release_id = &local_release_name.split('/').collect::<Vec<&str>>()[1];
-            let rest_branch_name = &backport_command.branch_to_create.split('/').collect::<Vec<&str>>()[1];
+            let rest_branch_name = &backport_command
+                .branch_to_create
+                .split('/')
+                .collect::<Vec<&str>>()[1];
 
             let branch_to_create = format!("{}/{}-{}", initials, release_id, rest_branch_name);
 
             gitc::create_local(&branch_to_create);
             gitc::checkout(&branch_to_create);
-
 
             match &backport_command.to_hash {
                 Some(to_hash) => {
@@ -206,14 +211,29 @@ fn handle_create_command(repo: Repository, create_command: CreateCommand) {
                 &worktree_name,
                 &branch.name().unwrap().unwrap()
             );
-            let path = format!(
-                "{}{}",
-                repo.path().to_str().unwrap().split_once(".git").unwrap().0,
-                worktree_name
+            // request location
+            println!(
+                "\nEnter location relative to git directory to create worktree `{}` [../]:",
+                &worktree_name
             );
+            let mut rel_dir_prefix = String::new();
+            io::stdin()
+                .read_line(&mut rel_dir_prefix)
+                .expect("Failed to read line");
 
-            gitc::create_worktree(branch.name().unwrap().unwrap(), &path);
-            tmux::change_window(&worktree_name, &path);
+            if rel_dir_prefix.trim().is_empty() {
+                rel_dir_prefix = "../".to_string();
+            }
+
+            let base_path = repo.path().to_str().unwrap().split_once(".git").unwrap().0;
+            let final_worktree_path = Path::new(&base_path)
+                .join(rel_dir_prefix.trim())
+                .join(worktree_name.clone());
+            let final_worktree_path_str = final_worktree_path.to_str().expect("Not a valid path");
+
+            println!("{:?}", final_worktree_path_str);
+            gitc::create_worktree(branch.name().unwrap().unwrap(), final_worktree_path_str);
+            tmux::change_window(&worktree_name, final_worktree_path_str);
         }
     }
 }
